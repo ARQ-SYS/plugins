@@ -90,16 +90,14 @@ impl ComponentManager {
 #[allow(unused)]
 #[cfg(feature = "broken")]
 impl ComponentManager {
-
-
-    
-    pub fn get_middleware(&self) -> Vec<Box<dyn Fairing>> {
+    pub fn get_middleware(&self) -> Vec<Box<&dyn Fairing>> {
         let mut out = Vec::new();
         for middleware in &self.middlewares {
             let raw = middleware.middlewares();
             unsafe {
-                // let complete = Box::from(Vec::from_raw_parts(raw.0, raw.1, raw.2));
-                // out.extend(complete);
+                let boxed: *mut Box<&dyn Fairing> = &mut Box::from(&*raw.0);
+                let complete: Vec<Box<&dyn Fairing>> = Vec::from_raw_parts(boxed, raw.1, raw.2);
+                out.extend(complete);
             }
         }
         return out;
