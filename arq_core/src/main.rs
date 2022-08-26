@@ -1,3 +1,5 @@
-fn main() {
-    println!("Hello, world!");
+
+#[tokio::main]
+async fn main() {
+    panic!("Core is not yet functional")
 }
