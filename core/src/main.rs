@@ -5,9 +5,10 @@ use arq_components::pluggable::manager::ComponentManager;
 async fn main() {
     unsafe {
         let mut manager = ComponentManager::new();
-        manager.load_middleware("./target/debug/libsample_component.so").unwrap();
+        manager.load_middleware("./target/debug/libsample_middleware.so").unwrap();
 
         let middlewares = manager.get_middlewares();
         println!("Loaded {} middlewares", middlewares.len());
+
     }
 }
