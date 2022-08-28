@@ -1,5 +1,13 @@
+use arq_components::pluggable::manager::ComponentManager;
+
 
 #[tokio::main]
 async fn main() {
-    panic!("Core is not yet functional")
+    unsafe {
+        let mut manager = ComponentManager::new();
+        manager.load_middleware("./target/debug/libsample_component.so").unwrap();
+
+        let middlewares = manager.get_middlewares();
+        println!("Loaded {} middlewares", middlewares.len());
+    }
 }
