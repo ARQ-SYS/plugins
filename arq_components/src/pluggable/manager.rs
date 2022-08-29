@@ -12,6 +12,8 @@ use crate::pluggable::{middleware::MiddlewareComponent, component::Component};
 
 use anyhow::{Result, Context};
 
+use super::middleware::DynFairing;
+
 
 /// This struct is used to orchestrate the loading of the components and middlewares.
 /// It will be used by the CORE to load the components and middlewares.
@@ -83,23 +85,21 @@ impl ComponentManager {
         }
         return out;
     }
-
-}
-
-
-// #[allow(unused)]
-// #[cfg(feature = "broken")]
-impl ComponentManager {
-    pub fn get_middlewares(&self) -> Vec<Box<dyn Fairing>> {
+    /// Return all loaded middleware to be attached
+    pub fn get_middlewares(&self) -> Vec<DynFairing> {
         let mut out = Vec::new();
         for middleware in &self.middlewares {
             let raw = middleware.middlewares();
             unsafe {
                 let complete = Vec::from_raw_parts(raw.0, raw.1, raw.2);
-                out.extend(complete);
+                let mut loadable: Vec<DynFairing> = Vec::new();
+                for mid in complete {
+                    loadable.push(DynFairing::from(mid))
+                }
+                out.extend(loadable);
             }
         }
-        return out;
+        out
     }
 
     // Loads the middleware from the given path.
@@ -123,5 +123,5 @@ impl ComponentManager {
         Ok(())
     }
 
-
 }
+
