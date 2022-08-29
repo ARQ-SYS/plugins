@@ -4,7 +4,7 @@ use libloading::{Library, Symbol};
 use rocket::Route;
 
 //#[cfg(feature = "broken")]
-use rocket::fairing::Fairing;
+
 
 use tracing::{info, debug};
 
@@ -83,7 +83,7 @@ impl ComponentManager {
                 out.extend(complete);
             }
         }
-        return out;
+        out
     }
     /// Return all loaded middleware to be attached
     pub fn get_middlewares(&self) -> Vec<DynFairing> {
