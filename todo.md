@@ -9,4 +9,4 @@
 
 - [ ] Implement command spec in core
 
-- [ ] Scrap middleware (for now at least)
+- [ ] Make middlewares work

@@ -3,7 +3,7 @@ use std::ffi::OsStr;
 use libloading::{Library, Symbol};
 use rocket::Route;
 
-#[cfg(feature = "broken")]
+//#[cfg(feature = "broken")]
 use rocket::fairing::Fairing;
 
 use tracing::{info, debug};
@@ -87,19 +87,16 @@ impl ComponentManager {
 }
 
 
-#[allow(unused)]
-#[cfg(feature = "broken")]
+// #[allow(unused)]
+// #[cfg(feature = "broken")]
 impl ComponentManager {
-
-
-    
-    pub fn get_middleware(&self) -> Vec<Box<dyn Fairing>> {
+    pub fn get_middlewares(&self) -> Vec<Box<dyn Fairing>> {
         let mut out = Vec::new();
         for middleware in &self.middlewares {
             let raw = middleware.middlewares();
             unsafe {
-                // let complete = Box::from(Vec::from_raw_parts(raw.0, raw.1, raw.2));
-                // out.extend(complete);
+                let complete = Vec::from_raw_parts(raw.0, raw.1, raw.2);
+                out.extend(complete);
             }
         }
         return out;
@@ -116,7 +113,7 @@ impl ComponentManager {
         self.loaded_libs.push(lib);               
         let lib = self.loaded_libs.last().unwrap(); // This is safe because we just pushed it.
 
-        let middleware_constructor: Symbol<MiddlewareConstructor> = lib.get(b"__arq_middleware_constructor").context("Unable to locate symbol. Please make sure that you're exporting it with declare_component!() macro")?;
+        let middleware_constructor: Symbol<MiddlewareConstructor> = lib.get(b"_arq_middleware_constructor").context("Unable to locate symbol. Please make sure that you're exporting it with declare_middleware!() macro")?;
         let raw = middleware_constructor();
         let middleware = Box::from_raw(raw);
         debug!("Loaded middleware: {}", middleware.name());

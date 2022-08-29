@@ -1,6 +1,6 @@
 
-use std::any::Any;
-use rocket::fairing::Fairing;
+use std::{any::Any, mem};
+use rocket::fairing::{Fairing, self};
 
 
 
@@ -16,7 +16,7 @@ pub trait MiddlewareComponent: Any + Send + Sync {
     fn on_middleware_unload(&self) {}
     /// This function should return the routes that should be mounted by CORE.
     /// The returning should be handled by the `arq_components::pluggable::middleware::MiddlewareFactory`.
-    fn middlewares(&self) -> (*mut dyn Fairing, usize, usize);
+    fn middlewares(&self) -> (*mut Box<dyn Fairing>, usize, usize);
 }
 
 
@@ -26,5 +26,31 @@ pub struct MiddlewareFactory {
     pub middlewares: Vec<Box<dyn Fairing>>
 }
 
-impl MiddlewareFactory {}
+impl MiddlewareFactory {
+
+    pub fn new() -> Self {
+        MiddlewareFactory { middlewares: Vec::new() }
+    }
+
+    pub fn add_middleware(mut self, middleware: Box<dyn Fairing>) -> Self {
+        self.middlewares.push(middleware);
+        self
+    }
+
+    pub fn export(mut self) -> (*mut Box<dyn Fairing>, usize, usize) {
+
+
+        self.middlewares.shrink_to_fit();
+        assert!(self.middlewares.len() == self.middlewares.capacity());
+
+        let ptr = self.middlewares.as_mut_ptr();
+        let len = self.middlewares.len();
+
+        mem::forget(self.middlewares);
+
+        (ptr, len, len)
+
+    }
+
+}
 
