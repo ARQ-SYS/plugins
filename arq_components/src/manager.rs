@@ -7,10 +7,8 @@ use rocket::Route;
 
 
 use tracing::{info, debug};
-
-use crate::pluggable::{middleware::MiddlewareComponent, component::Component};
-
 use anyhow::{Result, Context};
+use crate::{component::Component, middleware::MiddlewareComponent};
 
 use super::middleware::DynFairing;
 
