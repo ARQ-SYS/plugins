@@ -5,7 +5,6 @@ use rocket::Route;
 
 
 use tracing::{info, debug};
-use anyhow::{Result, Context};
 use crate::{component::Component, middleware::MiddlewareComponent};
 
 use super::middleware::DynFairing;
@@ -29,17 +28,17 @@ impl PluginManager {
         }
     }
     /// Loads the component from the given path.
-    pub unsafe fn load_components<P: AsRef<OsStr>>(&mut self, filename: P) -> Result<()> {
+    pub unsafe fn load_components<P: AsRef<OsStr>>(&mut self, filename: P) -> Result<(), libloading::Error> {
 
         type ComponentConstructor = fn() -> *mut dyn Component;
 
         debug!("Loading component from {}", filename.as_ref().to_string_lossy());
-        let lib = Library::new(filename.as_ref()).context("Failed to load library")?;
+        let lib = Library::new(filename.as_ref())?;
 
         self.loaded_libs.push(lib);               
         let lib = self.loaded_libs.last().unwrap(); // This is safe because we just pushed it.
 
-        let component_constructor: Symbol<ComponentConstructor> = lib.get(b"_arq_component_constructor").context("Unable to locate symbol. Please make sure that you're exporting it with declare_component!() macro")?;
+        let component_constructor: Symbol<ComponentConstructor> = lib.get(b"_arq_component_constructor")?;
         let raw = component_constructor();
         let component = Box::from_raw(raw);
         debug!("Loaded component: {}", component.name());
@@ -99,17 +98,17 @@ impl PluginManager {
     }
 
     // Loads the middleware from the given path.
-    pub unsafe fn load_middleware<P: AsRef<OsStr>>(&mut self, filename: P) -> Result<()> {
+    pub unsafe fn load_middleware<P: AsRef<OsStr>>(&mut self, filename: P) -> Result<(), libloading::Error> {
 
         type MiddlewareConstructor = fn() -> *mut dyn MiddlewareComponent;
 
         debug!("Loading middleware from {}", filename.as_ref().to_string_lossy());
-        let lib = Library::new(filename.as_ref()).context("Failed to load library")?;
+        let lib = Library::new(filename.as_ref())?;
 
         self.loaded_libs.push(lib);               
         let lib = self.loaded_libs.last().unwrap(); // This is safe because we just pushed it.
 
-        let middleware_constructor: Symbol<MiddlewareConstructor> = lib.get(b"_arq_middleware_constructor").context("Unable to locate symbol. Please make sure that you're exporting it with declare_middleware!() macro")?;
+        let middleware_constructor: Symbol<MiddlewareConstructor> = lib.get(b"_arq_middleware_constructor")?;
         let raw = middleware_constructor();
         let middleware = Box::from_raw(raw);
         debug!("Loaded middleware: {}", middleware.name());
