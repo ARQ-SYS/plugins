@@ -4,7 +4,7 @@ use std::{ffi::OsStr, process::Command};
 use libloading::{Library, Symbol};
 use rocket::Route;
 
-use anyhow::Result;
+use anyhow::{Error};
 use tracing::{info, debug};
 use crate::{component::Component, middleware::MiddlewareComponent};
 
@@ -72,19 +72,31 @@ impl PluginManager {
     /// This checks if the provided path contains the ARQ Component declaration
     /// This uses `nm` to parse the `.so`, so `nm` has to be installed on the host system
     #[cfg(feature = "nm")] 
-    pub unsafe fn contains_component<P: AsRef<OsStr>>(&self, filename: P) -> Result<bool> {
-        let out = Command::new("nm").arg(filename).output()?.stdout;
-        let out = String::from_utf8(out)?.contains("_arq_component");
-        Ok(out)
+    pub unsafe fn contains_component<P: AsRef<OsStr>>(&self, filename: P) -> anyhow::Result<bool> {
+        let command = Command::new("nm").arg(filename).output()?;
+        let success = command.status.success();
+        let out = String::from_utf8(command.stdout)?;
+
+        if success {
+            Ok(out.contains("_arq_component"))
+        } else {
+            Err(Error::msg("Command `nm` was not found"))
+        }
     }
 
     /// This checks if the provided path contains the ARQ Component declaration
     /// This uses `nm` to parse the `.so`, so `nm` has to be installed on the host system
     #[cfg(feature = "nm")] 
     pub unsafe fn contains_middleware<P: AsRef<OsStr>>(&self, filename: P) -> Result<bool> {
-        let out = Command::new("nm").arg(filename).output()?.stdout;
-        let out = String::from_utf8(out)?.contains("_arq_middleware");
-        Ok(out)
+        let command = Command::new("nm").arg(filename).output()?;
+        let success = command.status.success();
+        let out = String::from_utf8(command.stdout)?;
+
+        if success {
+            Ok(out.contains("_arq_middleware"))
+        } else {
+            Err(Error::msg("Command `nm` was not found"))
+        }
     }
 
     /// This functions unloads the components and middlewares from ComponentManager.
