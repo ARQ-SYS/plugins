@@ -1,11 +1,14 @@
 pub mod component;
 pub mod manager;
 pub mod middleware;
+pub mod exporter;
 
 pub mod prelude {
     pub use crate::component::*;
     pub use crate::manager::*;
     pub use crate::middleware::*;
+    pub use crate::exporter::*;
+    pub use rocket;
 }
 
 /// This macro is used to declare a component.
@@ -17,7 +20,6 @@ macro_rules! declare_component {
     ($plugin_type: ty, $constructor: path) => {
         #[no_mangle]
         pub extern "C" fn _arq_component_constructor() -> *mut dyn Component {
-            use arq_components::pluggable::component::Component;
 
             let constructor: fn() -> $plugin_type = $constructor;
             let objet = constructor();
@@ -37,7 +39,6 @@ macro_rules! declare_middleware {
     ($plugin_type: ty, $constructor: path) => {
         #[no_mangle]
         pub extern "C" fn _arq_middleware_constructor() -> *mut dyn MiddlewareComponent {
-            use arq_components::pluggable::middleware::MiddlewareComponent;
 
             let constructor: fn() -> $plugin_type = $constructor;
             let objet = constructor();

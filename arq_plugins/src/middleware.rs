@@ -18,46 +18,6 @@ pub trait MiddlewareComponent: Any + Send + Sync {
     fn middlewares(&self) -> (*mut Box<dyn Fairing>, usize, usize);
 }
 
-
-/// This struct is used to export the component's middlewares to the CORE.
-/// It must be used alongside the macro `declare_middleware!`, so the ComponentManager can find the MiddlewareComponent.
-pub struct MiddlewareFactory {
-    pub middlewares: Vec<Box<dyn Fairing>>
-}
-
-impl MiddlewareFactory {
-    /// Construct a new MiddlewareFactory
-    pub fn new() -> Self {
-        MiddlewareFactory { middlewares: Vec::new() }
-    }
-    /// Add a single middleware to be exported
-    pub fn add_middleware(mut self, middleware: Box<dyn Fairing>) -> Self {
-        self.middlewares.push(middleware);
-        self
-    }
-    /// Add multiple middlewares to be exported
-    pub fn add_middlewares(mut self, middlewares: Vec<Box<dyn Fairing>>) -> Self {
-        self.middlewares.extend(middlewares);
-        self
-    }
-    /// Export all the middlewares to be mounted by CORE
-    /// This consumes the factory
-    pub fn export(mut self) -> (*mut Box<dyn Fairing>, usize, usize) {
-
-        self.middlewares.shrink_to_fit();
-        assert!(self.middlewares.len() == self.middlewares.capacity());
-
-        let ptr = self.middlewares.as_mut_ptr();
-        let len = self.middlewares.len();
-
-        mem::forget(self.middlewares);
-
-        (ptr, len, len)
-
-    }
-
-}
-
 /// A struct that will act as a wrapper for `dyn Fairing` since rocket cannot attach `dyn Trait` as a middleware
 /// This should only be used by the ComponentManager, users do not need to worry about this
 pub struct DynFairing {
